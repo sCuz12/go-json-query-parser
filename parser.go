@@ -24,7 +24,15 @@ func (q *Query) Parse(query string) error {
 
 	fieldsPart := strings.TrimPrefix(parts[0], "select ")
 
-	q.Fields = strings.Split(fieldsPart, ", ") // get the fields for select
+	fields := strings.Split(fieldsPart, ",") // get the fields for select
+	
+	//trim 
+	for i,field := range fields {
+		fields[i] = strings.TrimSpace(field)
+		fmt.Println(field)
+		q.Fields = append(q.Fields, fields[i])
+	}
+
 
 	if len(parts) > 1 {
 		conditionsPart := parts[1]
@@ -62,10 +70,10 @@ func (q *Query) ProcessQuery(jsonData string) (string, int, error) {
 		// check if apply to conditions
 		if evaluateConditions(item, q.Conditions, q.Operators) {
 			filteredItem := map[string]interface{}{}
-
 			//iterate through available fields extracted from parser
 			for _, field := range q.Fields {
 				if val, ok := item[field]; ok {
+					fmt.Println(val)
 					filteredItem[field] = val
 				}
 			}
@@ -75,6 +83,10 @@ func (q *Query) ProcessQuery(jsonData string) (string, int, error) {
 	}
 
 	jsonDataResp, err := json.MarshalIndent(result, "", "  ")
+
+	if err != nil {
+		return "", 0, fmt.Errorf("error marshalling result: %w", err)
+	}
 
 	return string(jsonDataResp), len(result), nil
 }

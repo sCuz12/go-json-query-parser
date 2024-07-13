@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -9,6 +11,12 @@ import (
 type TestQuery struct {
 	QueryString string
 	Expected int
+}
+
+type Person struct {
+	Name string `json:"name"`
+	Age  int `json:"age"`
+	City string `json:"string"`
 }
 
 func TestProcessQuery(t *testing.T) {
@@ -147,5 +155,59 @@ func TestParseQuery(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Error to parse the query ")
 		}
+	}
+}
+
+func TestMultipleFields (t *testing.T) {
+	file , err := os.Open("./testdata/data.json") //OPEN FILE
+	if err != nil {
+		t.Fatalf("Failed to open file: %v", err)
+	}
+	defer file.Close()
+
+	jsonData,err := io.ReadAll(file)
+
+	if err != nil {
+        t.Fatalf("Failed to read file: %v", err)
+    }
+
+	tests:= []TestQuery{
+		{
+		QueryString : "select name,age where age < 31  and name=John",
+		Expected : 1,
+		},
+	}
+
+	for _,test := range tests {
+		var query Query 
+
+		err := query.Parse(test.QueryString)
+
+		if err != nil {
+			t.Fatalf("Error to parse the query ")
+		}	
+
+		data,total,err := query.ProcessQuery(string(jsonData))
+
+		var persons []Person
+
+		err = json.Unmarshal([]byte(data),&persons)
+		if err != nil {
+			t.Fatalf("Error unmarshaling results: %v", err)
+		}
+		
+		for _, person := range persons {
+			fmt.Println(person)
+			if person.Age == 0 || person.Name == "" {
+				t.Fatalf("Error getting age or name")
+			}
+		}
+
+
+		if total != test.Expected{
+			t.Errorf("ProcessQuery() returned %d results; want %d", total, test.Expected)
+		}
+
+		
 	}
 }
