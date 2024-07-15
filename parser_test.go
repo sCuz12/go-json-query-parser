@@ -211,3 +211,46 @@ func TestMultipleFields (t *testing.T) {
 		
 	}
 }
+
+
+func TestSelectAllFields (t *testing.T) {
+	file,err := os.Open("./testdata/data.json")
+
+	if err != nil {
+		t.Fatal("Error open the file")
+	}
+	defer file.Close()
+
+	jsonData,err := io.ReadAll(file)
+
+	if err != nil {
+        t.Fatalf("Failed to read file: %v", err)
+    }
+
+	tests := []TestQuery{
+		{
+			QueryString: "select * where age < 31  and name=Johny",
+			Expected: 1,
+		},
+	}
+
+	var queryParser Query
+
+	for _,test := range tests {
+		queryParser.Parse(test.QueryString)
+
+		data,total,err := queryParser.ProcessQuery(string(jsonData))
+
+		if err != nil {
+			t.Fatal("Error parsing query")
+		}
+
+		if total != test.Expected {
+			t.Fatal("Unexcpected Results")
+		}
+
+		fmt.Println(data)
+	}
+
+
+}

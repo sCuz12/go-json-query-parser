@@ -12,6 +12,7 @@ type Query struct {
 	Fields     []string
 	Conditions []string
 	Operators  []string
+	SelectAll  bool //flag to indicate user has specified to select all fields 
 }
 
 // Compile the regular expression once
@@ -24,14 +25,18 @@ func (q *Query) Parse(query string) error {
 
 	fieldsPart := strings.TrimPrefix(parts[0], "select ")
 
-	fields := strings.Split(fieldsPart, ",") // get the fields for select
-	
-	//trim 
-	for i,field := range fields {
-		fields[i] = strings.TrimSpace(field)
-		fmt.Println(field)
-		q.Fields = append(q.Fields, fields[i])
+	//check if asterics(*) and update flag
+	if fieldsPart == "*" {
+		q.SelectAll = true
+	}else {
+		fields := strings.Split(fieldsPart, ",") // get the fields for select
+		//trim 
+		for i,field := range fields {
+			fields[i] = strings.TrimSpace(field)
+			q.Fields = append(q.Fields, fields[i])
+		}
 	}
+
 
 
 	if len(parts) > 1 {
@@ -65,6 +70,13 @@ func (q *Query) ProcessQuery(jsonData string) (string, int, error) {
 		return "", 0, fmt.Errorf("error unmarshalling JSON: %w", err)
 	}
 
+	//If selected all append all fields 
+	if q.SelectAll && len(data) > 0 {
+		for key := range data[0] {
+			q.Fields = append(q.Fields, key)
+		}
+	}
+
 	// Iterate over the slice of items
 	for _, item := range data {
 		// check if apply to conditions
@@ -73,7 +85,7 @@ func (q *Query) ProcessQuery(jsonData string) (string, int, error) {
 			//iterate through available fields extracted from parser
 			for _, field := range q.Fields {
 				if val, ok := item[field]; ok {
-					fmt.Println(val)
+
 					filteredItem[field] = val
 				}
 			}
