@@ -229,7 +229,7 @@ func TestSelectAllFields (t *testing.T) {
 
 	tests := []TestQuery{
 		{
-			QueryString: "select * where age < 31  and name=Johny",
+			QueryString: "select * where age < 31  and name=John",
 			Expected: 1,
 		},
 	}
