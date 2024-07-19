@@ -19,6 +19,8 @@ type Person struct {
 	City string `json:"string"`
 }
 
+const FILENAME = "./testdata/data.json"
+
 func TestProcessQuery(t *testing.T) {
 	jsonData := `[
 		{"name": "John", "age": 30, "city": "New York"},
@@ -251,6 +253,33 @@ func TestSelectAllFields (t *testing.T) {
 
 		fmt.Println(data)
 	}
+}
 
+func TestQueryRecommendationsGeneration(t *testing.T) {
+
+	file,err := os.Open(FILENAME)
+
+	if err != nil {
+		t.Fatalf("Error while opening file %v", err)
+	}
+	defer file.Close()
+
+	jsonData,err := io.ReadAll(file)
+
+	if err != nil {
+		t.Fatalf("Error while reading the file %v", err)
+	}
+
+	var queryParser Query
+
+	results,err := queryParser.GenerateRecommendations(string(jsonData))
+
+	if err != nil {
+		t.Fatalf("Error generating recommnedations %v" , err)
+	}
+
+	if len(results) <= 0 {
+		t.Fatalf("The number of recommendations results is greater or less than 0 , Error : %v" ,err)
+	}
 
 }

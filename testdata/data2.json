@@ -1,0 +1,73 @@
+[
+    {
+      "name": "Alice",
+      "age": 29,
+      "city": "San Francisco",
+      "profession": "Engineer",
+      "hobbies": ["hiking", "photography"]
+    },
+    {
+      "name": "Bob",
+      "age": 35,
+      "city": "Los Angeles",
+      "profession": "Designer",
+      "hobbies": ["painting", "gaming"]
+    },
+    {
+      "name": "Charlie",
+      "age": 42,
+      "city": "New York",
+      "profession": "Chef",
+      "hobbies": ["cooking", "cycling"]
+    },
+    {
+      "name": "Diana",
+      "age": 28,
+      "city": "Chicago",
+      "profession": "Journalist",
+      "hobbies": ["writing", "reading"]
+    },
+    {
+      "name": "Eve",
+      "age": 31,
+      "city": "Seattle",
+      "profession": "Data Scientist",
+      "hobbies": ["machine learning", "robotics"]
+    },
+    {
+      "name": "Frank",
+      "age": 45,
+      "city": "Austin",
+      "profession": "Musician",
+      "hobbies": ["guitar", "singing"]
+    },
+    {
+      "name": "Grace",
+      "age": 34,
+      "city": "Boston",
+      "profession": "Doctor",
+      "hobbies": ["medicine", "volunteering"]
+    },
+    {
+      "name": "Hank",
+      "age": 39,
+      "city": "Denver",
+      "profession": "Lawyer",
+      "hobbies": ["reading", "chess"]
+    },
+    {
+      "name": "Ivy",
+      "age": 27,
+      "city": "Miami",
+      "profession": "Teacher",
+      "hobbies": ["teaching", "traveling"]
+    },
+    {
+      "name": "Jack",
+      "age": 50,
+      "city": "Dallas",
+      "profession": "Architect",
+      "hobbies": ["drawing", "gardening"]
+    }
+  ]
+  
