@@ -3,9 +3,12 @@ package parser
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/sCuz12/go-json-query-parser/sliceutils"
 )
 
 type Query struct {
@@ -16,7 +19,8 @@ type Query struct {
 }
 
 // Compile the regular expression once
-var conditionRegex = regexp.MustCompile(`([><=])`)
+var conditionRegex = regexp.MustCompile(`( in |[><=])`)
+
 
 func (q *Query) Parse(query string) error {
 	lowerQuery := strings.ToLower(query)
@@ -37,15 +41,12 @@ func (q *Query) Parse(query string) error {
 		}
 	}
 
-
-
 	if len(parts) > 1 {
 		conditionsPart := parts[1]
 
 		// Split conditions by " and " and " or "
 		re := regexp.MustCompile(`\s+(and|or)\s+`)
 		splitConditions := re.Split(conditionsPart, -1)
-
 		q.Conditions = splitConditions
 
 		//find all "and" and "or" operators
@@ -106,6 +107,7 @@ func (q *Query) ProcessQuery(jsonData string) (string, int, error) {
 // evaluateConditions evaluates a list of conditions on a given data item and combines
 // the results using logical operators ("and", "or").
 func evaluateConditions(data map[string]interface{}, conditions []string, operators []string) bool {
+	//Ex conditions : [age < 31 name=john]
 	if len(conditions) == 0 {
 		return true
 	}
@@ -113,8 +115,8 @@ func evaluateConditions(data map[string]interface{}, conditions []string, operat
 	//initially apply the first condition
 	result := evaluateCondition(data, conditions[0])
 
+	//loop to the rest of conditions
 	for i := 1; i < len(conditions); i++ {
-
 		operator := operators[i-1]
 		conditionResult := evaluateCondition(data, conditions[i])
 
@@ -131,26 +133,59 @@ func evaluateConditions(data map[string]interface{}, conditions []string, operat
 // evaluateCondition evaluates a single condition on a given data item.
 func evaluateCondition(data map[string]interface{}, condition string) bool {
 	parts := conditionRegex.Split(condition, -1)
-	
+
+	//if the parts are not 2 means no key , value something went wrong 
 	if len(parts) != 2 {
 		return false
 	}
 
 	key := strings.TrimSpace(parts[0]) //get key (ex: age)
-
 	valueStr := strings.TrimSpace(parts[1]) //get value (ex: 18)
 
-	operator := conditionRegex.FindString(condition) //get operator (>)
+	operator := strings.TrimSpace(conditionRegex.FindString(condition)) //get operator (>,in,=)
 
 	dataValue, exists := data[key]
 
 	//return falses if not found
 	if !exists {
+		fmt.Println("Key not found in data:", key)
+		return false
+	}
+	
+	//check for in operator
+	if operator == "in" {
+
+		if !sliceutils.IsSlice(dataValue) {
+			fmt.Println("Data value is not a slice")
+			return false
+		}
+		
+		//assuming the values is comma seperated trim parenthesis 
+		values := strings.Split(strings.Trim(valueStr, "()"), ",")
+
+		for i, v := range values {
+			values[i] = strings.Trim(v, " '") // Remove leading and trailing spaces and single quotes
+		}
+
+		dataValues := reflect.ValueOf(dataValue)
+
+		for i := 0; i < dataValues.Len(); i++ {
+			elem := dataValues.Index(i).Interface()
+			elemStr := fmt.Sprintf("%v", elem)
+			fmt.Println("Checking element:", elemStr)
+			for _, v := range values {
+				fmt.Println(v)
+				if elemStr == v {
+					fmt.Println("Match found:", elemStr)
+					return true
+				}
+			}
+		}
+
 		return false
 	}
 
 	conditionValue, err := strconv.ParseFloat(valueStr, 64)
-
 	if err == nil {
 		// Numeric comparison
 		dataValueFloat, ok := dataValue.(float64)
@@ -168,6 +203,7 @@ func evaluateCondition(data map[string]interface{}, condition string) bool {
 		default:
 			return false
 		}
+	 
 	} else {
 		// String comparison
 		dataValueStr, ok := dataValue.(string)

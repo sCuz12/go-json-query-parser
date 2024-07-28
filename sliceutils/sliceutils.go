@@ -1,6 +1,9 @@
 package sliceutils
 
-import "math/rand"
+import (
+	"math/rand"
+	"reflect"
+)
 
 
 
@@ -33,4 +36,9 @@ func RandomSubset(slice interface{}, subset int) interface{} {
 	default:
 		panic("unsupported type")
 	}
+}
+
+
+func IsSlice(variable interface{}) bool {
+	return reflect.TypeOf(variable).Kind() == reflect.Slice
 }

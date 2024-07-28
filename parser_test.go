@@ -20,6 +20,7 @@ type Person struct {
 }
 
 const FILENAME = "./testdata/data.json"
+const FILENAME2 = "./testdata/data2.json"
 
 func TestProcessQuery(t *testing.T) {
 	jsonData := `[
@@ -280,6 +281,51 @@ func TestQueryRecommendationsGeneration(t *testing.T) {
 
 	if len(results) <= 0 {
 		t.Fatalf("The number of recommendations results is greater or less than 0 , Error : %v" ,err)
+	}
+
+}
+
+func TestWhereInQuery (t *testing.T) {
+
+	file,err := os.Open(FILENAME2)
+	
+	if err != nil {
+		t.Fatalf("Error while opening file %v",err)
+	}
+
+	defer file.Close()
+
+	jsonData,err := io.ReadAll(file)
+
+	if err != nil {
+		t.Fatalf("Error while reading the file %v" , err)
+	}
+
+	tests := []TestQuery{
+		{
+			QueryString : "select * where hobbies IN ('drawing','gardening')",
+			Expected: 1,
+		},
+		{
+			QueryString : "select  where hobbies IN ('drawing','gardening','teaching')",
+			Expected: 2,
+		},
+	}
+
+	var query Query 
+
+	for _,test := range tests {
+		query.Parse(test.QueryString)	
+		results,total,err := query.ProcessQuery(string(jsonData))
+
+		if err != nil {
+			t.Fatalf("Error processing Query %v",results)
+		}
+
+		if total != test.Expected {
+			t.Fatalf("The total of results are not the same with expected")
+		}
+
 	}
 
 }
